@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
+
+  <link rel="stylesheet" type="text/css" href="css/index.css">
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsenui.css">
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+        <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+    <!-- <script src="./lib/onsenui/js/onsenui.min.js"></script> -->
+
+  <!-- <link rel="stylesheet" type="text/css" href="./css/style.css" /> -->
+  <title>Pokemon world!</title>
+</head>
+
+<body>
+
+    <ons-navigator id="myNavigator" page="main-temp"></ons-navigator>
+            
+    <!-- ******************** main-template ******************** -->
+
+    <template id="main-temp">
+      <ons-page id="main-page">      
+         <ons-toolbar style="background-color: red;">
+          <div class="center" style="color: #fff;">Pokedex</div>
+        </ons-toolbar>
+      </ons-page>
+   </template>
+
+  <!-- ******************** list template ******************** -->
+  
+  <ons-page id="list-page">
+    <div class="content content-container">
+      <ons-list id="list-item"></ons-list>
+    </div>
+  </ons-page>
+
+  <!-- ******************** spinner modal ******************** -->
+
+  <ons-modal id="spinner-modal">
+    <div style="margin: auto;">
+      <ons-icon icon="md-spinner" size="100px" spin></ons-icon>
+    </div>
+  </ons-modal>
+
+  <script type="text/javascript" src="cordova.js"></script>
+  <script>
+
+     ons.ready(function() {
+      
+      var spinnerModal = document.querySelector('#spinner-modal');
+      spinnerModal.show();
+
+      var settings = {
+        "url": `https://pokeapi.co/api/v2/pokemon?limit=151`,
+        // "method": "GET",
+        // "timeout": 0,
+      };
+
+      var pokemonData = settings.url;
+      $.ajax(pokemonData)
+        .done(function(result) {
+          sendData(result.results); // result.results contains pokemon list :)
+
+          let results = result;
+          console.log(results);
+
+        })
+        .fail(function(xhr, status, error) {
+          console.log('error:' + xhr.status);
+
+        })
+        .always(function() {
+
+          spinnerModal.hide();
+        })
+
+      function sendData(jsonData) {
+        var itemsList = document.getElementById('list-item'); // this is no longer null since this is no longer part of template.
+        for (let i = 1; i < jsonData.length; i++) {
+
+          itemsList.appendChild(
+            ons.createElement(
+              '<ons-card class="inside-cards">' +
+              '<ons-list>' +
+
+              '<ons-list-item modifier="tappable>' +
+              '<div class="left" >' +
+              jsonData[i].id +
+              '</div>' +
+              '<div class="" style="margin-left:20px;" >' +
+              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].url + "<br><br>" +
+              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].name + "<br><br>" +
+              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].name + "<br><br>" +
+              '</div>' +
+
+              '<div>' +
+              '</div>' +
+              '</ons-list-item>' +
+              '</ons-list>' +
+              '</ons-card>'
+            )
+          );
+        }
+      }
+
+    })
+</script>
+</body>
+
+</html>
