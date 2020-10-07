@@ -172,18 +172,19 @@ function getSinglePokemon(slug) {
 
   function description(jsonData) {
     var moreItemList = document.getElementById('description'); // this is no longer null since this is no longer part of template.
-    for (let i = 0; i < jsonData.length; i++) {
+    // for (let i = 0; i < jsonData.length; i++) {
 
       moreItemList.appendChild(
         ons.createElement(
-          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + '<ons-list-item>' + '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' +'</div>' + '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + '<div class="right"><ons-button onclick="getPage(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + '</ons-list-item>' +
-
-
-          '</ons-list>'
+          '<div>' +  
+                jsonData.name +
+                '<div class="description">' + jsonData.name + '</div>' +
+                '<ons-button>' +'<a href="' + jsonData.name + '">View Full Image</a>' + '</ons-button>' +
+           '</div>'
         )
       );
     }
-  }
+  // }
 
 </script>
 </body>
