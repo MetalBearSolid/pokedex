@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.examples.pokedex" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>pokemon pokedex</name>
+<widget id="com.example.pokedex" version="2.8.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Pokedex</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        A little simple pokedex for everyone to enjoy :)
     </description>
-    <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+    <author email="simonseto611@hotmail.com" href="http://simonseto.ca">
+        Seto Team
     </author>
     <content src="index.html" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
@@ -18,7 +18,26 @@
     <allow-intent href="geo:*" />
     <platform name="android">
         <allow-intent href="market:*" />
+        <resource-file src="res/colors.xml" target="/app/src/main/res/values/colors.xml" /> 
+        <icon foreground="res/icon/android/mdpi_fore.png" density="mdpi" background="@color/background" /> 
+        <icon foreground="res/icon/android/hdpi_fore.png" density="hdpi" background="@color/background" /> 
+        <icon foreground="res/icon/android/xhdpi_fore.png" density="xhdpi" background="@color/background" /> 
+        <icon foreground="res/icon/android/xxhdpi_fore.png" density="xxhdpi" background="@color/background" /> 
+        <icon foreground="res/icon/android/xxxhdpi_fore.png" density="xxxhdpi" background="@color/background" />
+
+        <splash src="res/screen/android/splash-land-mdpi.png" density="land-mdpi"/> 
+        <splash src="res/screen/android/splash-land-hdpi.png" density="land-hdpi"/> 
+        <splash src="res/screen/android/splash-land-xhdpi.png" density="land-xhdpi"/> 
+        <splash src="res/screen/android/splash-land-xxhdpi.png" density="land-xxhdpi"/> 
+        <splash src="res/screen/android/splash-land-xxxhdpi.png" density="land-xxxhdpi"/> 
+        <splash src="res/screen/android/splash-port-mdpi.png" density="port-mdpi"/> 
+        <splash src="res/screen/android/splash-port-hdpi.png" density="port-hdpi"/> 
+        <splash src="res/screen/android/splash-port-xhdpi.png" density="port-xhdpi"/> 
+        <splash src="res/screen/android/splash-port-xxhdpi.png" density="port-xxhdpi"/> 
+        <splash src="res/screen/android/splash-port-xxxhdpi.png" density="port-xxxhdpi"/>
     </platform>
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="AutoHideSplashScreen" value="true" />
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />

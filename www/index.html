@@ -8,10 +8,11 @@
   <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
 
   <link rel="stylesheet" type="text/css" href="css/index.css">
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsenui.css">
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
-        <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsenui.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+  <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
     <!-- <script src="./lib/onsenui/js/onsenui.min.js"></script> -->
 
   <!-- <link rel="stylesheet" type="text/css" href="./css/style.css" /> -->
@@ -36,9 +37,32 @@
   
   <ons-page id="list-page">
     <div class="content content-container">
+      <h2>Pokedex</h2>
       <ons-list id="list-item"></ons-list>
     </div>
   </ons-page>
+
+   <!-- ******************* single pokemon template ******************* -->
+
+    <template id="single-pokemon">
+      <ons-page id="single-pokemon-page" style="padding-top: 30px;">
+        <ons-toolbar style="background-color: #b8dbd9;">
+          <div class="left">
+            <ons-back-button>Back</ons-back-button>
+          </div>
+        </ons-toolbar>
+        <ons-card> 
+         
+          <div class="section-headers"> <h3>Image Overview</h3> </div>
+          <div id="imageList">
+            <p>Hello world</p>
+          </div>
+      
+          <ons-list id="description"></ons-list>
+         
+          </ons-card>
+        </ons-page>
+      </template>
 
   <!-- ******************** spinner modal ******************** -->
 
@@ -51,65 +75,116 @@
   <script type="text/javascript" src="cordova.js"></script>
   <script>
 
-     ons.ready(function() {
-      
-      var spinnerModal = document.querySelector('#spinner-modal');
-      spinnerModal.show();
+ ons.ready(function() {
 
-      var settings = {
-        "url": `https://pokeapi.co/api/v2/pokemon?limit=151`,
-        // "method": "GET",
-        // "timeout": 0,
-      };
+  var spinnerModal = document.querySelector('#spinner-modal');
+  spinnerModal.show();
 
-      var pokemonData = settings.url;
-      $.ajax(pokemonData)
-        .done(function(result) {
-          sendData(result.results); // result.results contains pokemon list :)
-
-          let results = result;
-          console.log(results);
-
-        })
-        .fail(function(xhr, status, error) {
-          console.log('error:' + xhr.status);
-
-        })
-        .always(function() {
-
-          spinnerModal.hide();
-        })
-
-      function sendData(jsonData) {
-        var itemsList = document.getElementById('list-item'); // this is no longer null since this is no longer part of template.
-        for (let i = 1; i < jsonData.length; i++) {
-
-          itemsList.appendChild(
-            ons.createElement(
-              '<ons-card class="inside-cards">' +
-              '<ons-list>' +
-
-              '<ons-list-item modifier="tappable>' +
-              '<div class="left" >' +
-              jsonData[i].id +
-              '</div>' +
-              '<div class="" style="margin-left:20px;" >' +
-              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].url + "<br><br>" +
-              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].name + "<br><br>" +
-              '<ons-icon icon="fa-canadian-maple-leaf"></ons-icon>' + ' ' + jsonData[i].name + "<br><br>" +
-              '</div>' +
-
-              '<div>' +
-              '</div>' +
-              '</ons-list-item>' +
-              '</ons-list>' +
-              '</ons-card>'
-            )
-          );
-        }
-      }
-
+  const promises = [];
+  for (let i = 1; i <= 151; i++) {
+    const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
+    promises.push(fetch(url).then(res => res.json()));
+  }
+  Promise.all(promises).then(results => {
+      const pokemon = results.map(data => ({
+        name: data.name,
+        id: data.id,
+        image: data.sprites["front_default"],
+        type: data.types.map(type => type.type.name).join(", "),
+        ability: data.abilities.map(ability => ability.ability.name).join(','),
+        moves: data.moves.map(move => move.move.name).slice(0, 10).join(', ')
+      }));
+      sendData(pokemon);
     })
+    .catch((reason) => {
+      if (reason === -999) {
+        console.error("Had previously handled error");
+      } else {
+        console.error(`Trouble with promiseGetWord(): ${reason}`);
+      }
+    })
+    .finally((info) => spinnerModal.hide());
+
+  function sendData(jsonData) {
+    var itemsList = document.getElementById('list-item'); // this is no longer null since this is no longer part of template.
+    for (let i = 0; i < jsonData.length; i++) {
+
+      itemsList.appendChild(
+        ons.createElement(
+          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + '<ons-list-item>' + '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' +'</div>' + '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + '<div class="right"><ons-button onclick="pushOverView(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + '</ons-list-item>' +
+
+
+          '</ons-list>'
+        )
+      );
+    }
+  }
+
+})
+
+ // SINGLE PAGE
+ function pushOverView(item){    
+
+   document.querySelector('#myNavigator').pushPage('single-pokemon', {data: {item: item}}); 
+
+} 
+
+document.addEventListener('init', function(event){
+    var page = event.target;
+
+    if(page.id === 'single-pokemon-page'){
+                        
+        var slug = page.data.item;
+        getSinglePokemon(slug);
+        console.log(slug);
+    }      
+});
+
+function getSinglePokemon(slug) {
+ var spinnerModal = document.querySelector('#spinner-modal');
+  spinnerModal.show();
+
+  const promise = [];
+  for (let i = 1; i <= 151; i++) {
+    const newUrl = `https://pokeapi.co/api/v2/pokemon/${i}`;
+    promise.push(fetch(newUrl).then(res => res.json()));
+  }
+  Promise.all(promise).then(results => {
+      const singlePokemons = results.map(data => ({
+        name: data.name,
+        id: data.id,
+        image: data.sprites["front_default"],
+        type: data.types.map(type => type.type.name).join(", "),
+        ability: data.abilities.map(ability => ability.ability.name).join(','),
+        moves: data.moves.map(move => move.move.name).slice(0, 10).join(', ')
+      }));
+      description(singlePokemons);
+    })
+    .catch((reason) => {
+      if (reason === -999) {
+        console.error("Had previously handled error");
+      } else {
+        console.error(`Trouble with promiseGetWord(): ${reason}`);
+      }
+    })
+    .finally((info) => spinnerModal.hide());
+  }
+
+  function description(jsonData) {
+    var moreItemList = document.getElementById('description'); // this is no longer null since this is no longer part of template.
+    for (let i = 0; i < jsonData.length; i++) {
+
+      moreItemList.appendChild(
+        ons.createElement(
+          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + '<ons-list-item>' + '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' +'</div>' + '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + '<div class="right"><ons-button onclick="getPage(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + '</ons-list-item>' +
+
+
+          '</ons-list>'
+        )
+      );
+    }
+  }
+
 </script>
 </body>
 
