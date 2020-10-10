@@ -21,7 +21,7 @@
 
 <body>
 
-    <ons-navigator id="myNavigator" page="main-temp"></ons-navigator>
+    <ons-navigator id="myNavigator" page="list-temp"></ons-navigator>
             
     <!-- ******************** main-template ******************** -->
 
@@ -34,35 +34,36 @@
    </template>
 
   <!-- ******************** list template ******************** -->
-  
-  <ons-page id="list-page">
-    <div class="content content-container">
-      <h2>Pokedex</h2>
-      <ons-list id="list-item"></ons-list>
-    </div>
-  </ons-page>
+  <!-- 
+    - CG: you had this as an in-line page but then were trying to load main in the navigator
+    - I wrapped this in a template and changed the nav to load it  
+  -->
+  <template id="list-temp">
+    <ons-page id="list-page">
+      <div class="content content-container">
+        <h2>Pokedex List</h2>
+        <ons-list id="list-item"></ons-list>
+      </div>
+    </ons-page>
+  </template>
 
    <!-- ******************* single pokemon template ******************* -->
 
     <template id="single-pokemon">
       <ons-page id="single-pokemon-page" style="padding-top: 30px;">
-        <ons-toolbar style="background-color: #b8dbd9;">
+        <ons-toolbar style="background-color: red;">
           <div class="left">
-            <ons-back-button>Back</ons-back-button>
+            <ons-back-button style="color:white;">Back</ons-back-button>
           </div>
+          <div class="center" style="color:white;">Pokedex</div>
         </ons-toolbar>
         <ons-card> 
-         
-          <div class="section-headers"> <h3>Image Overview</h3> </div>
-          <div id="imageList">
-            <p>Hello world</p>
-          </div>
       
-          <ons-list id="description"></ons-list>
+          <div id="description"></div>
          
           </ons-card>
-        </ons-page>
-      </template>
+      </ons-page>
+    </template>
 
   <!-- ******************** spinner modal ******************** -->
 
@@ -75,116 +76,114 @@
   <script type="text/javascript" src="cordova.js"></script>
   <script>
 
- ons.ready(function() {
+    document.addEventListener('init', function(event){
+        var page = event.target;
 
-  var spinnerModal = document.querySelector('#spinner-modal');
-  spinnerModal.show();
+        // CG: I moved what you had in the ons.ready() into a function loadFullList() and then call it here
+        if(page.id === 'list-page'){
+          loadFullList();
+        }
 
-  const promises = [];
-  for (let i = 1; i <= 151; i++) {
-    const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
-    promises.push(fetch(url).then(res => res.json()));
+        if(page.id === 'single-pokemon-page'){
+                            
+            var slug = page.data.item;
+            console.log('c1:' + slug);
+            getSinglePokemon(slug);
+            
+        }      
+    });
+  
+  // CG: this was previously embedded in the ons.ready() broke it out
+  function loadFullList(){ 
+
+    var spinnerModal = document.querySelector('#spinner-modal');
+    spinnerModal.show();
+
+    const promises = [];
+    for (let i = 1; i <= 151; i++) {
+      const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
+      promises.push(fetch(url).then(res => res.json()));
+    }
+    Promise.all(promises).then(results => {
+        const pokemon = results.map(data => ({
+          name: data.name,
+          id: data.id,
+          type: data.types.map(type => type.type.name).join(", "),
+        }));
+        sendData(pokemon);
+      })
+      .catch((reason) => {
+        if (reason === -999) {
+          console.error("Had previously handled error");
+        } else {
+          console.error(`Trouble with promiseGetWord(): ${reason}`);
+        }
+      })
+      .finally((info) => spinnerModal.hide());
   }
-  Promise.all(promises).then(results => {
-      const pokemon = results.map(data => ({
-        name: data.name,
-        id: data.id,
-        image: data.sprites["front_default"],
-        type: data.types.map(type => type.type.name).join(", "),
-        ability: data.abilities.map(ability => ability.ability.name).join(','),
-        moves: data.moves.map(move => move.move.name).slice(0, 10).join(', ')
-      }));
-      sendData(pokemon);
-    })
-    .catch((reason) => {
-      if (reason === -999) {
-        console.error("Had previously handled error");
-      } else {
-        console.error(`Trouble with promiseGetWord(): ${reason}`);
-      }
-    })
-    .finally((info) => spinnerModal.hide());
 
+  // CG: this was previously embedded in the ons.ready() broke it out
   function sendData(jsonData) {
     var itemsList = document.getElementById('list-item'); // this is no longer null since this is no longer part of template.
     for (let i = 0; i < jsonData.length; i++) {
 
       itemsList.appendChild(
         ons.createElement(
-          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + '<ons-list-item>' + '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' +'</div>' + '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + '<div class="right"><ons-button onclick="pushOverView(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + '</ons-list-item>' +
-
-
+          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + 
+            '<ons-list-item>' + 
+              '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' + '</div>' +
+              '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + 
+              '<div class="right"><ons-button onclick="pushOverView(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + 
+            '</ons-list-item>' +
           '</ons-list>'
         )
       );
     }
   }
 
-})
+  // SINGLE PAGE
+  function pushOverView(item){    
+    
+    document.querySelector('#myNavigator').pushPage('single-pokemon', {data: {item: item}}); 
 
- // SINGLE PAGE
- function pushOverView(item){    
+  } 
 
-   document.querySelector('#myNavigator').pushPage('single-pokemon', {data: {item: item}}); 
+  // CG: for now I just wanted to check that it was working so I used jQuery you can revert to fetch if you'd like
+  function getSinglePokemon(slug) {
+    var spinnerModal = document.querySelector('#spinner-modal');
+    spinnerModal.show();
+    // console the Pokemon ID
+    console.log('c2: slug=' + slug);
+    // pokemon url + slug = ex: https://pokeapi.co/api/v2/pokemon/1
+    $.ajax('https://pokeapi.co/api/v2/pokemon/' + slug) 
+      .done(function(result){ 
+        // console the API results
+          console.log('c3:' + JSON.stringify(result));
+          
+          description(result);
+      }) 
 
-} 
+      .fail(function(xhr, status, error){ 
+          console.log('error:' + xhr.status); 
+          // NOTE: normally we'd add some error handlers here 
+      }) 
 
-document.addEventListener('init', function(event){
-    var page = event.target;
-
-    if(page.id === 'single-pokemon-page'){
-                        
-        var slug = page.data.item;
-        getSinglePokemon(slug);
-        console.log(slug);
-    }      
-});
-
-function getSinglePokemon(slug) {
- var spinnerModal = document.querySelector('#spinner-modal');
-  spinnerModal.show();
-
-  const promise = [];
-  for (let i = 1; i <= 151; i++) {
-    const newUrl = `https://pokeapi.co/api/v2/pokemon/${i}`;
-    promise.push(fetch(newUrl).then(res => res.json()));
+      .always(function(){ 
+      // done or fail we still hide the spinner 
+          spinnerModal.hide(); 
+      })   
   }
-  Promise.all(promise).then(results => {
-      const singlePokemons = results.map(data => ({
-        name: data.name,
-        id: data.id,
-        image: data.sprites["front_default"],
-        type: data.types.map(type => type.type.name).join(", "),
-        ability: data.abilities.map(ability => ability.ability.name).join(','),
-        moves: data.moves.map(move => move.move.name).slice(0, 10).join(', ')
-      }));
-      description(singlePokemons);
-    })
-    .catch((reason) => {
-      if (reason === -999) {
-        console.error("Had previously handled error");
-      } else {
-        console.error(`Trouble with promiseGetWord(): ${reason}`);
-      }
-    })
-    .finally((info) => spinnerModal.hide());
-  }
-
+  
   function description(jsonData) {
     var moreItemList = document.getElementById('description'); // this is no longer null since this is no longer part of template.
-    // for (let i = 0; i < jsonData.length; i++) {
-
       moreItemList.appendChild(
         ons.createElement(
-          '<div>' +  
-                jsonData.name +
-                '<div class="description">' + jsonData.name + '</div>' +
-                '<ons-button>' +'<a href="' + jsonData.name + '">View Full Image</a>' + '</ons-button>' +
+          '<div class="pokemon-singles">' +  
+                '<h2>' + jsonData.name + '</h2>' + '<img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData.id + '.png' + '"/>' + '<br>'+ '<ul><li> Height:' + jsonData.height + '</li>' + '<li> Weight:'+ jsonData.weight + '</li></ul>' +
            '</div>'
         )
       );
     }
-  // }
 
 </script>
 </body>
