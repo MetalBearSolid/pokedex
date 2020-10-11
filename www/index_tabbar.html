@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
+
+  <link rel="stylesheet" type="text/css" href="css/index.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsenui.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+  <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  
+    <!-- <script src="./lib/onsenui/js/onsenui.min.js"></script> -->
+
+  <!-- <link rel="stylesheet" type="text/css" href="./css/style.css" /> -->
+  <title>Pokemon world!</title>
+</head>
+
+<body>
+
+    <!-- ******************** TABBAR ******************** -->
+    <ons-navigator id="myNavigator" page="list-temp">
+      <ons-page>
+
+        <ons-tabbar swipeable position="bottom">
+          
+          <ons-tab page="main-temp" label="Pokedex" icon="md-star-outline" active></ons-tab>
+
+          <ons-tab page="search-temp" label="Search" icon="md-search"></ons-tab>
+
+        </ons-tabbar>
+
+      </ons-page>
+    </ons-navigator>
+            
+    <!-- ******************** main-template ******************** -->
+
+    <template id="main-temp">
+      <ons-page id="main-page">      
+         <ons-toolbar style="background-color: red;">
+          <div class="center" style="color: #fff;">Pokedex</div>
+        </ons-toolbar>
+      </ons-page>
+   </template>
+
+  <!-- ******************** list template ******************** -->
+  <!-- 
+    - CG: you had this as an in-line page but then were trying to load main in the navigator
+    - I wrapped this in a template and changed the nav to load it  
+  -->
+  <template id="list-temp">
+    <ons-page id="list-page">
+      <div class="content content-container">
+        <h2>Pokedex List</h2>
+        <ons-list id="list-item"></ons-list>
+      </div>
+    </ons-page>
+  </template>
+
+   <!-- ******************* single pokemon template ******************* -->
+
+    <template id="single-pokemon">
+      <ons-page id="single-pokemon-page" style="padding-top: 30px;">
+        <ons-toolbar style="background-color: red;">
+          <div class="left">
+            <ons-back-button style="color:white;">Back</ons-back-button>
+          </div>
+          <div class="center" style="color:white;">Pokedex</div>
+        </ons-toolbar>
+        <ons-card> 
+      
+          <div id="description"></div>
+         
+          </ons-card>
+      </ons-page>
+    </template>
+
+  <!-- ******************** spinner modal ******************** -->
+
+  <ons-modal id="spinner-modal">
+    <div style="margin: auto;">
+      <ons-icon icon="md-spinner" size="100px" spin></ons-icon>
+    </div>
+  </ons-modal>
+
+  <script type="text/javascript" src="cordova.js"></script>
+  <script>
+
+    document.addEventListener('init', function(event){
+        var page = event.target;
+
+        // CG: I moved what you had in the ons.ready() into a function loadFullList() and then call it here
+        if(page.id === 'list-page'){
+          loadFullList();
+        }
+
+        if(page.id === 'single-pokemon-page'){
+                            
+            var slug = page.data.item;
+            console.log('c1:' + slug);
+            getSinglePokemon(slug);
+            
+        }      
+    });
+  
+  // CG: this was previously embedded in the ons.ready() broke it out
+  function loadFullList(){ 
+
+    var spinnerModal = document.querySelector('#spinner-modal');
+    spinnerModal.show();
+
+    const promises = [];
+    for (let i = 1; i <= 151; i++) {
+      const url = `https://pokeapi.co/api/v2/pokemon/${i}`;
+      promises.push(fetch(url).then(res => res.json()));
+    }
+    Promise.all(promises).then(results => {
+        const pokemon = results.map(data => ({
+          name: data.name,
+          id: data.id,
+          type: data.types.map(type => type.type.name).join(", "),
+        }));
+        sendData(pokemon);
+      })
+      .catch((reason) => {
+        if (reason === -999) {
+          console.error("Had previously handled error");
+        } else {
+          console.error(`Trouble with promiseGetWord(): ${reason}`);
+        }
+      })
+      .finally((info) => spinnerModal.hide());
+  }
+
+  // CG: this was previously embedded in the ons.ready() broke it out
+  function sendData(jsonData) {
+    var itemsList = document.getElementById('list-item'); // this is no longer null since this is no longer part of template.
+    for (let i = 0; i < jsonData.length; i++) {
+
+      itemsList.appendChild(
+        ons.createElement(
+          '<ons-list>' + '<ons-list-header>' + jsonData[i].name + '</ons-list-header>' + 
+            '<ons-list-item>' + 
+              '<div class="left"><img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData[i].id + '.png' + '"/>' + '</div>' +
+              '<div class="center">' + 'type : ' + jsonData[i].type + '</div>' + 
+              '<div class="right"><ons-button onclick="pushOverView(\'' + jsonData[i].id + '\')" icon="md-caret-right"></ons-button>' + '</div>' + 
+            '</ons-list-item>' +
+          '</ons-list>'
+        )
+      );
+    }
+  }
+
+  // SINGLE PAGE
+  function pushOverView(item){    
+    
+    document.querySelector('#myNavigator').pushPage('single-pokemon', {data: {item: item}}); 
+
+  } 
+
+  // CG: for now I just wanted to check that it was working so I used jQuery you can revert to fetch if you'd like
+  function getSinglePokemon(slug) {
+    var spinnerModal = document.querySelector('#spinner-modal');
+    spinnerModal.show();
+    // console the Pokemon ID
+    console.log('c2: slug=' + slug);
+    // pokemon url + slug = ex: https://pokeapi.co/api/v2/pokemon/1
+    $.ajax('https://pokeapi.co/api/v2/pokemon/' + slug) 
+      .done(function(result){ 
+        // console the API results
+          console.log('c3:' + JSON.stringify(result));
+          
+          description(result);
+      }) 
+
+      .fail(function(xhr, status, error){ 
+          console.log('error:' + xhr.status); 
+          // NOTE: normally we'd add some error handlers here 
+      }) 
+
+      .always(function(){ 
+      // done or fail we still hide the spinner 
+          spinnerModal.hide(); 
+      })   
+  }
+  
+  function description(jsonData) {
+    var moreItemList = document.getElementById('description'); // this is no longer null since this is no longer part of template.
+      moreItemList.appendChild(
+        ons.createElement(
+          '<div class="pokemon-singles">' +  
+                '<h2>' + jsonData.name + '</h2>' + '<img class="pokes" src="https://pokeres.bastionbot.org/images/pokemon/' + jsonData.id + '.png' + '"/>' + '<br>'+ '<ul><li> Height:' + jsonData.height + '</li>' + '<li> Weight:'+ jsonData.weight + '</li></ul>' +
+           '</div>'
+        )
+      );
+    }
+
+</script>
+</body>
+
+</html>
