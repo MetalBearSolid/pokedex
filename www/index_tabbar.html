@@ -22,13 +22,12 @@
 <body>
 
     <!-- ******************** TABBAR ******************** -->
-    <ons-navigator id="myNavigator" page="list-temp">
+    <ons-navigator swipeable id="myNavigator" page="list-temp">
       <ons-page>
 
         <ons-tabbar swipeable position="bottom">
           
-          <ons-tab page="main-temp" label="Pokedex" icon="md-star-outline" active></ons-tab>
-
+          <ons-tab page="list-temp" label="Pokedex" icon="md-star-outline" active></ons-tab>
           <ons-tab page="search-temp" label="Search" icon="md-search"></ons-tab>
 
         </ons-tabbar>
@@ -60,6 +59,25 @@
     </ons-page>
   </template>
 
+  <!-- ******************** search TEST template ******************** -->
+  <template id="search-temp">
+    <ons-page id="search-page">
+        
+        <ons-card>
+            <div class="title"> About </div>
+        </ons-card>     
+
+        <ons-card>
+        <div class="content">
+                <p>
+                    Change the content within this page.
+                </p>
+            </div>
+        </ons-card>
+
+    </ons-page>
+  </template>
+
    <!-- ******************* single pokemon template ******************* -->
 
     <template id="single-pokemon">
@@ -86,9 +104,11 @@
     </div>
   </ons-modal>
 
+ 
+  <!-- ******************** SCRIPTS ******************** -->
   <script type="text/javascript" src="cordova.js"></script>
+  
   <script>
-
     document.addEventListener('init', function(event){
         var page = event.target;
 

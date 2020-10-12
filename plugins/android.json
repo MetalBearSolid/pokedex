@@ -9,6 +9,9 @@
   "installed_plugins": {
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "com.examples.pokedex"
+    },
+    "cordova-plugin-splashscreen": {
+      "PACKAGE_NAME": "com.examples.pokedex"
     }
   },
   "dependent_plugins": {}
