@@ -37,3 +37,7 @@ ons-button.button {
 h2 {
 	text-align: center;
 }
+
+.back-button__icon {
+    fill: white!important;
+}
